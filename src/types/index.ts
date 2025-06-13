@@ -2,6 +2,10 @@ export interface User {
   id: string;
   email: string;
   created_at: string;
+  user_metadata?: {
+    username?: string;
+    display_name?: string;
+  };
 }
 
 export interface TradingSession {

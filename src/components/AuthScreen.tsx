@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Mail, Lock, UserPlus, LogIn, AlertCircle, CheckCircle } from 'lucide-react';
+import { TrendingUp, Mail, Lock, UserPlus, LogIn, AlertCircle, CheckCircle, User } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useQuotes } from '../hooks/useQuotes';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const { signIn, signUp, resendConfirmation } = useAuth();
@@ -33,7 +34,7 @@ const AuthScreen: React.FC = () => {
           toast.success('Welcome back!');
         }
       } else {
-        const { data, error } = await signUp(email, password);
+        const { data, error } = await signUp(email, password, username);
         if (error) {
           if (error.message.includes('email_address_invalid')) {
             toast.error('Please use a valid email address. Demo emails like "demo@demo.com" are not accepted.');
@@ -207,8 +208,9 @@ const AuthScreen: React.FC = () => {
                   <div className="flex items-start">
                     <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 mr-3 flex-shrink-0" />
                     <div className="text-sm text-amber-200">
-                      <p className="font-medium mb-1">Email Requirements:</p>
+                      <p className="font-medium mb-1">Account Requirements:</p>
                       <ul className="text-amber-300 space-y-1">
+                        <li>• Choose a unique username for your profile</li>
                         <li>• Use a real email address that can receive emails</li>
                         <li>• You'll need to confirm your email before signing in</li>
                         <li>• Demo emails (like demo@demo.com) are not accepted</li>
@@ -219,6 +221,30 @@ const AuthScreen: React.FC = () => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Username field for signup */}
+                {!isLogin && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Username
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        placeholder="Choose a username"
+                        required
+                        minLength={3}
+                        maxLength={20}
+                        pattern="^[a-zA-Z0-9_]+$"
+                        title="Username can only contain letters, numbers, and underscores"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
                     Email Address

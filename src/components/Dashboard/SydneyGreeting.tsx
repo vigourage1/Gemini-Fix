@@ -33,7 +33,7 @@ const SydneyGreeting: React.FC<SydneyGreetingProps> = ({ userName }) => {
             <span className="text-slate-500 text-xs">•</span>
             <span className="text-slate-400 text-xs">AI Assistant</span>
           </div>
-          <p className="text-slate-200 text-sm mt-1">{greeting}</p>
+          <p className="text-slate-200 text-sm mt-1 font-medium">{greeting}</p>
         </div>
       </div>
     </motion.div>

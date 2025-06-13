@@ -27,8 +27,8 @@ export const useAuth = () => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const result = await authService.signUp(email, password);
+  const signUp = async (email: string, password: string, username: string) => {
+    const result = await authService.signUp(email, password, username);
     return result;
   };
 

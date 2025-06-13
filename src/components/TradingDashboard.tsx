@@ -270,8 +270,19 @@ const TradingDashboard: React.FC = () => {
     }
   };
 
-  // Extract user name from email (before @)
-  const userName = user?.email?.split('@')[0] || undefined;
+  // Extract username from user metadata or fallback to email
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.username) {
+      return user.user_metadata.username;
+    }
+    if (user?.user_metadata?.display_name) {
+      return user.user_metadata.display_name;
+    }
+    // Fallback to email prefix if no username
+    return user?.email?.split('@')[0] || 'User';
+  };
+
+  const userName = getUserDisplayName();
 
   // Get sessions to display based on collapse state
   const getDisplayedSessions = () => {
@@ -308,7 +319,7 @@ const TradingDashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-slate-300">Welcome, {userName || user?.email}</span>
+              <span className="text-slate-300">Welcome, {userName}</span>
               <button
                 onClick={handleSignOut}
                 className="flex items-center px-4 py-2 text-slate-300 hover:text-white transition-colors"
