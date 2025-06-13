@@ -50,6 +50,7 @@ const TradingDashboard: React.FC = () => {
   const [newSessionName, setNewSessionName] = useState('');
   const [newSessionCapital, setNewSessionCapital] = useState('');
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [extractedTradeData, setExtractedTradeData] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
@@ -173,6 +174,9 @@ const TradingDashboard: React.FC = () => {
     try {
       const newTrade = await tradingService.addTrade(trade);
       setTrades([newTrade, ...trades]);
+      
+      // Clear extracted trade data after successful addition
+      setExtractedTradeData(null);
     } catch (error) {
       toast.error('Failed to add trade');
     }
@@ -198,6 +202,11 @@ const TradingDashboard: React.FC = () => {
       setCurrentSession(session);
       toast.success(`Switched to "${session.name}" session`);
     }
+  };
+
+  const handleTradeDataExtracted = (tradeData: any) => {
+    setExtractedTradeData(tradeData);
+    toast.success('Trade data extracted! Check the trade form.');
   };
 
   const handleExportJSON = () => {
@@ -478,6 +487,7 @@ const TradingDashboard: React.FC = () => {
                   <TradeForm
                     onAddTrade={handleAddTrade}
                     sessionId={currentSession.id}
+                    extractedTradeData={extractedTradeData}
                   />
                   <div className="lg:col-span-1">
                     <TradesList
@@ -509,6 +519,7 @@ const TradingDashboard: React.FC = () => {
       <ChatInterface 
         currentSessionId={currentSession?.id} 
         onSessionSwitch={handleSessionSwitch}
+        onTradeDataExtracted={handleTradeDataExtracted}
       />
 
       {/* Session Summary Modal */}

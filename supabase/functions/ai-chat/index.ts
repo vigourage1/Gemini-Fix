@@ -10,6 +10,7 @@ interface ChatRequest {
   message: string;
   sessionId?: string;
   userId: string;
+  conversationContext?: string;
 }
 
 interface Trade {
@@ -44,7 +45,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { message, sessionId, userId }: ChatRequest = await req.json();
+    const { message, sessionId, userId, conversationContext }: ChatRequest = await req.json();
 
     // Get user's trading data
     const { data: sessions, error: sessionsError } = await supabaseClient
@@ -82,9 +83,21 @@ Deno.serve(async (req) => {
     const losingTrades = trades?.filter(trade => trade.profit_loss < 0).length || 0;
     const winRate = trades?.length ? (winningTrades / trades.length) * 100 : 0;
 
-    const systemPrompt = `You are Sydney, an AI trading assistant for Laxmi Chit Fund's trading analytics platform. You are helpful, friendly, and knowledgeable about trading.
+    const systemPrompt = `You are Sydney, an AI trading assistant for Laxmi Chit Fund's trading analytics platform. You are helpful, friendly, conversational, and knowledgeable about trading.
 
-User's Trading Data Summary:
+PERSONALITY:
+- Be conversational and natural like ChatGPT
+- Use appropriate emojis to make responses engaging
+- Ask follow-up questions to keep conversations flowing
+- Remember context from recent messages
+- Be encouraging and supportive about trading journey
+- Handle both trading topics AND general conversation
+- Show genuine interest in the user's trading progress
+
+CONVERSATION CONTEXT:
+${conversationContext || 'No previous conversation'}
+
+USER'S TRADING DATA SUMMARY:
 - Total Sessions: ${tradingContext.totalSessions}
 - Total Trades: ${tradingContext.totalTrades}
 - Total P/L: $${totalProfit.toFixed(2)}
@@ -92,22 +105,34 @@ User's Trading Data Summary:
 - Winning Trades: ${winningTrades}
 - Losing Trades: ${losingTrades}
 
-Recent Sessions: ${JSON.stringify(sessions?.slice(0, 5), null, 2)}
-Recent Trades: ${JSON.stringify(trades?.slice(0, 10), null, 2)}
+Recent Sessions: ${JSON.stringify(sessions?.slice(0, 3), null, 2)}
+Recent Trades: ${JSON.stringify(trades?.slice(0, 5), null, 2)}
 
-You can:
-1. Analyze their trading performance and provide insights
-2. Answer questions about specific trades or sessions
-3. Provide psychological feedback on trading patterns
-4. Chat freely about anything (jokes, general questions, etc.)
-5. Help with trading education and tips
-6. Detect risky behavior patterns
+CAPABILITIES:
+1. Analyze trading performance with specific data insights
+2. Provide psychological feedback on trading patterns
+3. Chat about general topics (weather, jokes, life, etc.)
+4. Offer trading education and market insights
+5. Help with risk management advice
+6. Detect concerning trading behaviors
+7. Be a supportive trading companion
 
-Be conversational, helpful, and provide actionable advice. Format your responses clearly and use specific data from their trading history when relevant.
+RESPONSE GUIDELINES:
+- Keep responses conversational and engaging
+- Use specific data from their trading history when relevant
+- Ask follow-up questions to encourage dialogue
+- Be supportive but honest about trading performance
+- Use emojis appropriately (not too many, but enough to be friendly)
+- Vary your responses - don't be repetitive
+- Remember what was discussed recently
+- Handle both serious trading analysis and light conversation
 
-Current date: ${new Date().toLocaleDateString()}`;
+Current date: ${new Date().toLocaleDateString()}
+Current time: ${new Date().toLocaleTimeString()}
 
-    // Use Gemini API instead of OpenAI
+Respond naturally to: "${message}"`;
+
+    // Use Gemini API
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
       method: 'POST',
       headers: {
@@ -119,13 +144,13 @@ Current date: ${new Date().toLocaleDateString()}`;
           {
             parts: [
               {
-                text: `${systemPrompt}\n\nUser message: ${message}`
+                text: systemPrompt
               }
             ]
           }
         ],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.8,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 1000,

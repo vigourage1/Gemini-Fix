@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calculator } from 'lucide-react';
+import { Plus, Calculator, Sparkles } from 'lucide-react';
 import { Trade } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import toast from 'react-hot-toast';
@@ -8,14 +8,58 @@ import toast from 'react-hot-toast';
 interface TradeFormProps {
   onAddTrade: (trade: Omit<Trade, 'id' | 'created_at'>) => void;
   sessionId: string;
+  extractedTradeData?: any;
 }
 
-const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId }) => {
+const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedTradeData }) => {
   const [margin, setMargin] = useState('');
   const [roiAmount, setRoiAmount] = useState('');
   const [entrySide, setEntrySide] = useState<'Long' | 'Short'>('Long');
   const [comments, setComments] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-populate form when trade data is extracted from image
+  useEffect(() => {
+    if (extractedTradeData) {
+      // Calculate margin from entry price and volume if available
+      if (extractedTradeData.entryPrice && extractedTradeData.volume) {
+        const calculatedMargin = extractedTradeData.entryPrice * extractedTradeData.volume;
+        setMargin(calculatedMargin.toString());
+      }
+      
+      // Set profit/loss amount
+      if (extractedTradeData.profit) {
+        setRoiAmount(extractedTradeData.profit.toString());
+      }
+      
+      // Set entry side
+      if (extractedTradeData.side) {
+        setEntrySide(extractedTradeData.side);
+      }
+      
+      // Set comments with extracted data
+      let autoComments = `Auto-extracted from screenshot:\n`;
+      if (extractedTradeData.symbol) {
+        autoComments += `Symbol: ${extractedTradeData.symbol}\n`;
+      }
+      if (extractedTradeData.entryPrice) {
+        autoComments += `Entry: ${extractedTradeData.entryPrice}\n`;
+      }
+      if (extractedTradeData.exitPrice) {
+        autoComments += `Exit: ${extractedTradeData.exitPrice}\n`;
+      }
+      if (extractedTradeData.openTime) {
+        autoComments += `Open Time: ${extractedTradeData.openTime}\n`;
+      }
+      if (extractedTradeData.closeTime) {
+        autoComments += `Close Time: ${extractedTradeData.closeTime}`;
+      }
+      
+      setComments(autoComments);
+      
+      toast.success('Trade form auto-populated with extracted data!');
+    }
+  }, [extractedTradeData]);
 
   // Calculate ROI percentage from dollar amount
   const roiPercentage = margin && roiAmount ? (Number(roiAmount) / Number(margin)) * 100 : 0;
@@ -57,16 +101,32 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId }) => {
     }
   };
 
+  const clearForm = () => {
+    setMargin('');
+    setRoiAmount('');
+    setEntrySide('Long');
+    setComments('');
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-slate-800 rounded-xl p-6 border border-slate-700"
     >
-      <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
-        <Plus className="w-5 h-5 mr-2" />
-        Add New Trade
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-white flex items-center">
+          <Plus className="w-5 h-5 mr-2" />
+          Add New Trade
+        </h3>
+        
+        {extractedTradeData && (
+          <div className="flex items-center text-purple-400 text-sm">
+            <Sparkles className="w-4 h-4 mr-1" />
+            AI Extracted
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -166,26 +226,38 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId }) => {
             onChange={(e) => setComments(e.target.value)}
             className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
             placeholder="Add notes about this trade..."
-            rows={3}
+            rows={extractedTradeData ? 6 : 3}
           />
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 flex items-center justify-center"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Plus className="w-5 h-5 mr-2" />
-              Add Trade
-            </>
+        <div className="flex space-x-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 flex items-center justify-center"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Plus className="w-5 h-5 mr-2" />
+                Add Trade
+              </>
+            )}
+          </motion.button>
+          
+          {extractedTradeData && (
+            <button
+              type="button"
+              onClick={clearForm}
+              className="px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors"
+            >
+              Clear
+            </button>
           )}
-        </motion.button>
+        </div>
       </form>
     </motion.div>
   );

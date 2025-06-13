@@ -8,11 +8,11 @@ import {
   Loader2,
   Minimize2,
   Maximize2,
-  Upload,
   Image as ImageIcon
 } from 'lucide-react';
 import { aiService, ChatMessage } from '../../services/aiService';
 import { useAuth } from '../../hooks/useAuth';
+import DragDropUpload from '../UI/DragDropUpload';
 import toast from 'react-hot-toast';
 
 // Sydney Avatar Component
@@ -28,9 +28,14 @@ const SydneyAvatar = ({ className = "w-4 h-4" }: { className?: string }) => (
 interface ChatInterfaceProps {
   currentSessionId?: string;
   onSessionSwitch?: (sessionId: string) => void;
+  onTradeDataExtracted?: (tradeData: any) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessionSwitch }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
+  currentSessionId, 
+  onSessionSwitch,
+  onTradeDataExtracted 
+}) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -40,7 +45,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
   const [showImageUpload, setShowImageUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,20 +123,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
     } catch (error) {
       toast.error('Failed to get Sydney\'s response');
       console.error('Chat error:', error);
+      
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Sorry, I\'m having trouble right now. Please try again in a moment! 🤖',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-
+  const handleImageUpload = async (file: File) => {
     setIsLoading(true);
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -159,9 +163,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
           responseContent += `• P/L: ${trade.profit || 'Not detected'}\n\n`;
         });
         
-        responseContent += '💡 You can now manually add these trades to your session with the extracted data!';
+        responseContent += '💡 I can help you add these trades to your session! Would you like me to auto-fill the trade form with this data?';
+        
+        // Notify parent component about extracted trade data
+        if (onTradeDataExtracted && analysisResult.trades.length > 0) {
+          onTradeDataExtracted(analysisResult.trades[0]);
+        }
       } else {
-        responseContent += '❌ Could not extract trade data from this screenshot. Please make sure the image shows clear trading information.';
+        responseContent += '❌ I couldn\'t extract clear trade data from this screenshot. Here are some tips for better results:\n\n';
+        responseContent += '• Ensure the screenshot shows clear profit/loss numbers\n';
+        responseContent += '• Make sure currency pairs or symbols are visible\n';
+        responseContent += '• Check that entry/exit prices are readable\n';
+        responseContent += '• Try cropping to focus on the trade details\n\n';
+        responseContent += 'Feel free to try again with a clearer image! 📸';
       }
 
       const assistantMessage: ChatMessage = {
@@ -172,6 +186,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      toast.success('Screenshot analyzed successfully!');
     } catch (error) {
       toast.error('Failed to analyze screenshot');
       console.error('Screenshot analysis error:', error);
@@ -179,7 +194,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '❌ Sorry, I couldn\'t analyze that screenshot. Please try again with a clearer image.',
+        content: '❌ I had trouble analyzing that screenshot. Please make sure the image shows clear trading information and try again! The image should contain visible:\n\n• Currency pairs or symbols\n• Entry and exit prices\n• Profit/loss amounts\n• Position sizes\n\nTry uploading a clearer screenshot! 📷',
         timestamp: new Date(),
       };
 
@@ -187,9 +202,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
     } finally {
       setIsLoading(false);
       setShowImageUpload(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
@@ -226,7 +238,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
         opacity: 1, 
         y: 0, 
         scale: 1,
-        height: isMinimized ? 'auto' : '500px'
+        height: isMinimized ? 'auto' : '600px'
       }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       className="fixed bottom-6 right-6 w-96 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 z-50 flex flex-col"
@@ -265,7 +277,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
             className="flex flex-col flex-1"
           >
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto max-h-80 space-y-4">
+            <div className="flex-1 p-4 overflow-y-auto max-h-96 space-y-4">
               {messages.length === 0 && (
                 <div className="text-center text-slate-400 py-8">
                   <SydneyAvatar className="w-12 h-12 mx-auto mb-3" />
@@ -274,10 +286,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
                   <div className="mt-4 space-y-2 text-xs">
                     <p className="text-slate-500">Try asking:</p>
                     <div className="space-y-1">
-                      <p>"Summarize my trades this week"</p>
-                      <p>"Load the BTC 5 Minute session"</p>
-                      <p>"What's the gold price today?"</p>
+                      <p>"What's Bitcoin price today?"</p>
                       <p>"Tell me a trading joke"</p>
+                      <p>"Load the BTC session"</p>
+                      <p>"Analyze my performance"</p>
                     </div>
                   </div>
                 </div>
@@ -339,6 +351,29 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Image Upload Section */}
+            {showImageUpload && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 border-t border-slate-700"
+              >
+                <DragDropUpload
+                  onFileUpload={handleImageUpload}
+                  accept="image/*"
+                  maxSize={10}
+                  className="mb-2"
+                />
+                <button
+                  onClick={() => setShowImageUpload(false)}
+                  className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                >
+                  Cancel upload
+                </button>
+              </motion.div>
+            )}
+
             {/* Input */}
             <div className="p-4 border-t border-slate-700">
               <div className="flex items-center space-x-2">
@@ -354,7 +389,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
                 />
                 <button
                   onClick={() => setShowImageUpload(!showImageUpload)}
-                  className="p-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${
+                    showImageUpload 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
                   title="Upload trading screenshot"
                 >
                   <ImageIcon className="w-4 h-4" />
@@ -367,30 +406,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentSessionId, onSessi
                   <Send className="w-4 h-4" />
                 </button>
               </div>
-              
-              {showImageUpload && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-3 p-3 bg-slate-700 rounded-lg border border-slate-600"
-                >
-                  <label className="flex items-center justify-center w-full p-4 border-2 border-dashed border-slate-500 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
-                    <div className="text-center">
-                      <Upload className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm text-slate-300">Upload trading screenshot</p>
-                      <p className="text-xs text-slate-500">Sydney will analyze and extract trade data</p>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </motion.div>
-              )}
               
               {messages.length > 0 && (
                 <button
