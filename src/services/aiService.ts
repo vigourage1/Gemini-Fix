@@ -18,22 +18,27 @@ export const aiService = {
     // Add user message to conversation context
     conversationManager.addMessage(userId, 'user', message);
     
-    // Check for specific patterns first
-    const response = await this.handleSpecialQueries(message, userId, sessionId);
-    if (response) {
-      conversationManager.addMessage(userId, 'assistant', response);
-      return response;
+    // Check for specific patterns first (jokes, session switching)
+    const specialResponse = await this.handleSpecialQueries(message, userId, sessionId);
+    if (specialResponse) {
+      conversationManager.addMessage(userId, 'assistant', specialResponse);
+      return specialResponse;
     }
 
+    // Handle market data and web search queries
+    const { enrichedPrompt, hasLiveData } = await marketDataService.handleUserMessage(message);
+    
     // Get conversation context
     const recentContext = conversationManager.getRecentMessages(userId, 8);
     
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: {
-        message,
+        message: enrichedPrompt,
+        originalMessage: message,
         userId,
         sessionId,
         conversationContext: recentContext,
+        hasLiveData,
       },
     });
 
@@ -54,11 +59,6 @@ export const aiService = {
       return this.handleJokeRequest(userId, normalizedMessage);
     }
     
-    // Handle market data requests
-    if (this.isMarketDataRequest(normalizedMessage)) {
-      return await this.handleMarketDataRequest(message);
-    }
-    
     // Handle session switching
     if (this.isSessionSwitchRequest(normalizedMessage)) {
       return await this.handleSessionSwitch(message, userId);
@@ -75,7 +75,9 @@ export const aiService = {
       /make me laugh/i,
       /another one/i,
       /more joke/i,
-      /that's funny/i
+      /that's funny/i,
+      /haha/i,
+      /lol/i
     ];
     
     return jokePatterns.some(pattern => pattern.test(message));
@@ -87,6 +89,7 @@ export const aiService = {
     
     // Determine if user wants another joke
     const wantsAnother = /another|more|again/i.test(message);
+    const isFollowUp = /haha|lol|funny|good one/i.test(message);
     
     let joke;
     if (message.includes('crypto') || message.includes('bitcoin')) {
@@ -98,91 +101,40 @@ export const aiService = {
     }
     
     if (!joke) {
-      joke = JokeService.getRandomJoke([]); // Reset if all used
+      // Reset if all jokes have been used
+      conversationManager.clearUsedJokes(userId);
+      joke = JokeService.getRandomJoke([], 'trading');
     }
     
     if (joke) {
       conversationManager.markJokeUsed(userId, joke.id);
       
       let response = '';
-      if (wantsAnother && recentMessages.includes('joke')) {
+      if (isFollowUp && recentMessages.includes('joke')) {
+        response = "Glad you enjoyed that! 😄 Here's another one:\n\n";
+      } else if (wantsAnother && recentMessages.includes('joke')) {
         response = "You're in a good mood! 😄 Here's another one:\n\n";
       } else if (recentMessages.includes('joke')) {
-        response = "Glad you enjoyed that! Here's a different one:\n\n";
+        response = "Here's a different one for you:\n\n";
       }
       
       response += JokeService.formatJoke(joke);
       
       // Add a follow-up question occasionally
-      if (Math.random() > 0.7) {
-        response += "\n\nHow's your trading going today? Any interesting setups you're watching? 📈";
+      if (Math.random() > 0.6) {
+        const followUps = [
+          "\n\nHow's your trading going today? Any interesting setups you're watching? 📈",
+          "\n\nSpeaking of trading, need help analyzing any of your recent trades? 📊",
+          "\n\nWhat markets are you keeping an eye on today? 👀",
+          "\n\nAny questions about your trading performance? I'm here to help! 🤝"
+        ];
+        response += followUps[Math.floor(Math.random() * followUps.length)];
       }
       
       return response;
     }
     
-    return "I'm all out of fresh jokes for now! 😅 But I'd love to help you with your trading analysis instead!";
-  },
-
-  isMarketDataRequest(message: string): boolean {
-    const marketPatterns = [
-      /what'?s.*price/i,
-      /current.*price/i,
-      /price of/i,
-      /how much is/i,
-      /bitcoin.*price/i,
-      /btc.*price/i,
-      /eth.*price/i,
-      /stock price/i,
-      /market price/i,
-      /quote for/i
-    ];
-    
-    return marketPatterns.some(pattern => pattern.test(message));
-  },
-
-  async handleMarketDataRequest(message: string): Promise<string> {
-    const { type, symbol } = marketDataService.detectAssetType(message);
-    
-    if (type === 'unknown' || !symbol) {
-      return "I'd love to help you get market data! Could you specify which asset you're interested in? For example:\n• \"What's Bitcoin price?\"\n• \"AAPL stock price\"\n• \"EURUSD rate\"";
-    }
-    
-    try {
-      let data = null;
-      let response = '';
-      
-      if (type === 'crypto') {
-        data = await marketDataService.getCryptoPrice(symbol);
-        if (data) {
-          response = marketDataService.formatPriceResponse(data, 'crypto');
-          response += "\n\nLooking strong! Are you thinking of making a move? 🤔";
-        }
-      } else if (type === 'stock') {
-        data = await marketDataService.getStockPrice(symbol);
-        if (data) {
-          response = marketDataService.formatPriceResponse(data, 'stock');
-          response += "\n\nInteresting movement! What's your take on this? 📊";
-        }
-      } else if (type === 'forex') {
-        const from = symbol.substring(0, 3);
-        const to = symbol.substring(3, 6);
-        data = await marketDataService.getForexRate(from, to);
-        if (data) {
-          response = marketDataService.formatPriceResponse(data, 'forex');
-          response += "\n\nForex markets are always moving! Any trades planned? 💱";
-        }
-      }
-      
-      if (!data) {
-        return `Sorry, I couldn't find current data for ${symbol}. The symbol might be incorrect or the market might be closed. Try checking the spelling or ask about a different asset! 🔍`;
-      }
-      
-      return response;
-    } catch (error) {
-      console.error('Market data error:', error);
-      return `I'm having trouble accessing live market data right now. Please try again in a moment! 📡`;
-    }
+    return "I'm all out of fresh jokes for now! 😅 But I'd love to help you with your trading analysis instead! What would you like to know about your trades?";
   },
 
   isSessionSwitchRequest(message: string): boolean {
@@ -199,7 +151,7 @@ export const aiService = {
   async handleSessionSwitch(message: string, userId: string): Promise<string> {
     const sessionNameMatch = message.match(/(?:load|switch to|open|change to)\s+(?:the\s+)?(.+?)\s+session/i);
     if (!sessionNameMatch) {
-      return "I'd be happy to help you switch sessions! Could you tell me which session you'd like to load? For example: \"Load the BTC 5 Minute session\"";
+      return "I'd be happy to help you switch sessions! Could you tell me which session you'd like to load? For example: \"Load the BTC session\" or \"Switch to EUR/USD session\"";
     }
     
     const sessionName = sessionNameMatch[1];
@@ -368,7 +320,8 @@ Rules:
       `${holidayGreeting}${timeGreeting}${name}! How's your trading going today?`,
       `${holidayGreeting}${timeGreeting}${name}! Ready to analyze some trades?`,
       `${holidayGreeting}${timeGreeting}${name}! What's on your trading radar today?`,
-      `${holidayGreeting}${timeGreeting}${name}! Any exciting market moves catching your eye?`
+      `${holidayGreeting}${timeGreeting}${name}! Any exciting market moves catching your eye?`,
+      `${holidayGreeting}${timeGreeting}${name}! I'm here to help with your trading analysis!`
     ];
     
     return greetings[Math.floor(Math.random() * greetings.length)];
