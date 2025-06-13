@@ -138,7 +138,7 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedT
               type="number"
               value={margin}
               onChange={(e) => setMargin(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="no-spinner w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="Enter margin amount"
               min="0"
               step="0.01"
@@ -154,7 +154,7 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedT
               type="number"
               value={roiAmount}
               onChange={(e) => setRoiAmount(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="no-spinner w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="Enter profit/loss amount"
               step="0.01"
               required

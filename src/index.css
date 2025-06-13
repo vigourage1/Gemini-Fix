@@ -58,6 +58,28 @@
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
 }
 
+/* Remove number input spinners/arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Specific class for number inputs without spinners */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  -moz-appearance: textfield;
+}
+
 /* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;
