@@ -12,7 +12,9 @@ import {
   BarChart3,
   PieChart,
   Trash2,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { tradingService } from '../services/tradingService';
@@ -51,6 +53,7 @@ const TradingDashboard: React.FC = () => {
   const [newSessionCapital, setNewSessionCapital] = useState('');
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [extractedTradeData, setExtractedTradeData] = useState<any>(null);
+  const [sessionsCollapsed, setSessionsCollapsed] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -270,6 +273,16 @@ const TradingDashboard: React.FC = () => {
   // Extract user name from email (before @)
   const userName = user?.email?.split('@')[0] || undefined;
 
+  // Get sessions to display based on collapse state
+  const getDisplayedSessions = () => {
+    if (sessionsCollapsed) {
+      return currentSession ? [currentSession] : [];
+    }
+    return sessions;
+  };
+
+  const shouldShowScrollbar = sessions.length > 3 && !sessionsCollapsed;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -315,79 +328,114 @@ const TradingDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Session Controls */}
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-              <div className="flex items-center justify-between mb-4">
+            {/* Enhanced Session Controls */}
+            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-slate-700">
                 <h2 className="text-lg font-semibold text-white">Sessions</h2>
-                <button
-                  onClick={() => setShowNewSessionForm(true)}
-                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  {sessions.length > 0 && (
+                    <button
+                      onClick={() => setSessionsCollapsed(!sessionsCollapsed)}
+                      className="p-2 text-slate-400 hover:text-white transition-colors"
+                      title={sessionsCollapsed ? 'Expand sessions' : 'Collapse sessions'}
+                    >
+                      {sessionsCollapsed ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronUp className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowNewSessionForm(true)}
+                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
-              {showNewSessionForm && (
-                <motion.form
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  onSubmit={handleCreateSession}
-                  className="mb-4 space-y-3"
-                >
-                  <input
-                    type="text"
-                    value={newSessionName}
-                    onChange={(e) => setNewSessionName(e.target.value)}
-                    placeholder="Session name"
-                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <input
-                    type="number"
-                    value={newSessionCapital}
-                    onChange={(e) => setNewSessionCapital(e.target.value)}
-                    placeholder="Initial capital"
-                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                  <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
-                    >
-                      Create
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowNewSessionForm(false)}
-                      className="flex-1 bg-slate-600 text-white py-2 rounded-lg text-sm hover:bg-slate-500 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </motion.form>
-              )}
-
-              <div className="space-y-3">
-                {sessions.map((session) => {
-                  const sessionStats = calculateSessionStats(
-                    currentSession?.id === session.id ? trades : [], 
-                    session.initial_capital
-                  );
-                  
-                  return (
-                    <SessionCard
-                      key={session.id}
-                      session={session}
-                      stats={sessionStats}
-                      isActive={currentSession?.id === session.id}
-                      onClick={() => setCurrentSession(session)}
-                      onDelete={() => handleDeleteSession(session.id)}
+              <div className="p-6">
+                {showNewSessionForm && (
+                  <motion.form
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    onSubmit={handleCreateSession}
+                    className="mb-4 space-y-3"
+                  >
+                    <input
+                      type="text"
+                      value={newSessionName}
+                      onChange={(e) => setNewSessionName(e.target.value)}
+                      placeholder="Session name"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
                     />
-                  );
-                })}
+                    <input
+                      type="number"
+                      value={newSessionCapital}
+                      onChange={(e) => setNewSessionCapital(e.target.value)}
+                      placeholder="Initial capital"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                    <div className="flex space-x-2">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                      >
+                        Create
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewSessionForm(false)}
+                        className="flex-1 bg-slate-600 text-white py-2 rounded-lg text-sm hover:bg-slate-500 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </motion.form>
+                )}
+
+                {/* Sessions List with Conditional Scrollbar */}
+                <div 
+                  className={`space-y-3 ${
+                    shouldShowScrollbar 
+                      ? 'max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800' 
+                      : ''
+                  }`}
+                >
+                  {getDisplayedSessions().map((session) => {
+                    const sessionStats = calculateSessionStats(
+                      currentSession?.id === session.id ? trades : [], 
+                      session.initial_capital
+                    );
+                    
+                    return (
+                      <SessionCard
+                        key={session.id}
+                        session={session}
+                        stats={sessionStats}
+                        isActive={currentSession?.id === session.id}
+                        onClick={() => setCurrentSession(session)}
+                        onDelete={() => handleDeleteSession(session.id)}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Collapsed State Info */}
+                {sessionsCollapsed && sessions.length > 1 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-3 text-center text-slate-400 text-sm"
+                  >
+                    {sessions.length - 1} more session{sessions.length > 2 ? 's' : ''} hidden
+                  </motion.div>
+                )}
               </div>
             </div>
 
