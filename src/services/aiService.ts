@@ -293,12 +293,35 @@ Rules:
     const day = now.getDate();
 
     let timeGreeting = '';
-    if (hour < 12) {
+    let creativeGreeting = '';
+    
+    // Special creative greetings for very late/early hours (2-4 AM)
+    if (hour >= 2 && hour <= 4) {
+      const nightOwlGreetings = [
+        `Hello night owl${userName ? ` ${userName}` : ''}! 🦉 Still hunting for those perfect trades?`,
+        `Hey there, midnight trader${userName ? ` ${userName}` : ''}! 🌙 The markets never sleep, and neither do you!`,
+        `Burning the midnight oil${userName ? `, ${userName}` : ''}? ⭐ Let's make these late-night hours count!`,
+        `Wide awake${userName ? ` ${userName}` : ''}? 🌃 Perfect time for some deep market analysis!`,
+        `Early bird or night owl${userName ? `, ${userName}` : ''}? 🌅 Either way, I'm here to help with your trading!`
+      ];
+      return nightOwlGreetings[Math.floor(Math.random() * nightOwlGreetings.length)];
+    }
+    
+    // Regular time-based greetings
+    if (hour >= 5 && hour < 12) {
       timeGreeting = 'Good morning';
-    } else if (hour < 17) {
+    } else if (hour >= 12 && hour < 17) {
       timeGreeting = 'Good afternoon';
-    } else {
+    } else if (hour >= 17 && hour < 22) {
       timeGreeting = 'Good evening';
+    } else {
+      // Late night (22-1 AM)
+      const lateNightGreetings = [
+        `Good evening${userName ? ` ${userName}` : ''}! 🌙 Trading into the night?`,
+        `Hey there${userName ? ` ${userName}` : ''}! 🌃 Late night trading session?`,
+        `Evening${userName ? ` ${userName}` : ''}! 🌆 Perfect time to review today's trades!`
+      ];
+      return lateNightGreetings[Math.floor(Math.random() * lateNightGreetings.length)];
     }
 
     let holidayGreeting = '';
