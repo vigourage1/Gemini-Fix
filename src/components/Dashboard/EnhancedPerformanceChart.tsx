@@ -197,6 +197,7 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           className="h-80"
+          style={{ backgroundColor: 'transparent' }}
         >
           <ResponsiveContainer width="100%" height="100%">
             {activeChart === 'capital' && (
@@ -218,7 +219,11 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
                   fontSize={12}
                   tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  contentStyle={{ backgroundColor: 'transparent' }}
+                  wrapperStyle={{ backgroundColor: 'transparent' }}
+                />
                 <Area
                   type="monotone"
                   dataKey="capital"
@@ -248,12 +253,19 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomPieTooltip />} />
+                <Tooltip 
+                  content={<CustomPieTooltip />}
+                  contentStyle={{ backgroundColor: 'transparent' }}
+                  wrapperStyle={{ backgroundColor: 'transparent' }}
+                />
               </PieChart>
             )}
 
             {activeChart === 'performance' && (
-              <BarChart data={performanceByDay}>
+              <BarChart 
+                data={performanceByDay}
+                style={{ backgroundColor: 'transparent' }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis 
                   dataKey="date" 
@@ -265,7 +277,23 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
                   fontSize={12}
                   tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  contentStyle={{ 
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    boxShadow: 'none'
+                  }}
+                  wrapperStyle={{ 
+                    backgroundColor: 'transparent',
+                    outline: 'none'
+                  }}
+                  cursor={{ 
+                    fill: 'rgba(59, 130, 246, 0.1)',
+                    stroke: 'rgba(59, 130, 246, 0.3)',
+                    strokeWidth: 1
+                  }}
+                />
                 <Bar 
                   dataKey="profit_loss" 
                   fill="#3B82F6"
@@ -296,7 +324,11 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
                   fontSize={12}
                   tickFormatter={(value) => `${value.toFixed(0)}%`}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  contentStyle={{ backgroundColor: 'transparent' }}
+                  wrapperStyle={{ backgroundColor: 'transparent' }}
+                />
                 <Bar 
                   yAxisId="left"
                   dataKey="profit_loss" 
