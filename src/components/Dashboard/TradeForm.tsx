@@ -162,155 +162,91 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedT
           </div>
         </div>
 
-        {/* Premium Long/Short Toggle Buttons */}
+        {/* Compact Long/Short Toggle Buttons */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
             Entry Side
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Long Button */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Long Button - Compact */}
             <motion.button
               type="button"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setEntrySide('Long')}
-              className={`relative group overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
+              className={`relative group overflow-hidden rounded-lg px-3 py-2 transition-all duration-300 ${
                 entrySide === 'Long'
-                  ? 'bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-emerald-600/20 border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/25'
-                  : 'bg-gradient-to-br from-slate-700/50 to-slate-800/50 border-2 border-slate-600/30 hover:border-slate-500/50'
+                  ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-400/50 shadow-md shadow-emerald-500/20'
+                  : 'bg-slate-700/50 border border-slate-600/30 hover:border-slate-500/50'
               }`}
             >
-              {/* Animated background gradient */}
-              <div className={`absolute inset-0 transition-opacity duration-300 ${
-                entrySide === 'Long' ? 'opacity-100' : 'opacity-0'
-              }`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-green-500/10" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-300/5 to-transparent" />
-              </div>
-              
-              {/* Glow effect */}
-              {entrySide === 'Long' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-2xl"
-                />
-              )}
-              
               {/* Content */}
-              <div className="relative flex items-center justify-center space-x-3">
-                <div className={`p-2 rounded-full transition-all duration-300 ${
+              <div className="relative flex items-center justify-center space-x-2">
+                <div className={`p-1 rounded-full transition-all duration-300 ${
                   entrySide === 'Long'
                     ? 'bg-emerald-500/20 text-emerald-300'
-                    : 'bg-slate-600/50 text-slate-400 group-hover:bg-slate-500/50 group-hover:text-slate-300'
+                    : 'bg-slate-600/50 text-slate-400 group-hover:text-slate-300'
                 }`}>
-                  <TrendingUp className="w-5 h-5" />
+                  <TrendingUp className="w-3 h-3" />
                 </div>
                 
-                <div className="flex flex-col items-start">
-                  <span className={`font-bold text-lg transition-colors duration-300 ${
-                    entrySide === 'Long' ? 'text-white' : 'text-slate-300 group-hover:text-white'
-                  }`}>
-                    Long
-                  </span>
-                  <span className={`text-xs transition-colors duration-300 ${
-                    entrySide === 'Long' ? 'text-emerald-300' : 'text-slate-500 group-hover:text-slate-400'
-                  }`}>
-                    Buy Position
-                  </span>
-                </div>
+                <span className={`font-medium text-sm transition-colors duration-300 ${
+                  entrySide === 'Long' ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                }`}>
+                  Long
+                </span>
                 
                 {/* Selection indicator */}
                 {entrySide === 'Long' && (
                   <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="absolute top-2 right-2"
                   >
-                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div>
+                    <CheckCircle className="w-3 h-3 text-emerald-400" />
                   </motion.div>
                 )}
               </div>
-              
-              {/* Shimmer effect on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-              </div>
             </motion.button>
             
-            {/* Short Button */}
+            {/* Short Button - Compact */}
             <motion.button
               type="button"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setEntrySide('Short')}
-              className={`relative group overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
+              className={`relative group overflow-hidden rounded-lg px-3 py-2 transition-all duration-300 ${
                 entrySide === 'Short'
-                  ? 'bg-gradient-to-br from-red-500/20 via-rose-500/15 to-red-600/20 border-2 border-red-400/50 shadow-lg shadow-red-500/25'
-                  : 'bg-gradient-to-br from-slate-700/50 to-slate-800/50 border-2 border-slate-600/30 hover:border-slate-500/50'
+                  ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border border-red-400/50 shadow-md shadow-red-500/20'
+                  : 'bg-slate-700/50 border border-slate-600/30 hover:border-slate-500/50'
               }`}
             >
-              {/* Animated background gradient */}
-              <div className={`absolute inset-0 transition-opacity duration-300 ${
-                entrySide === 'Short' ? 'opacity-100' : 'opacity-0'
-              }`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-red-400/10 via-transparent to-rose-500/10" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-red-300/5 to-transparent" />
-              </div>
-              
-              {/* Glow effect */}
-              {entrySide === 'Short' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute inset-0 bg-red-500/10 blur-xl rounded-2xl"
-                />
-              )}
-              
               {/* Content */}
-              <div className="relative flex items-center justify-center space-x-3">
-                <div className={`p-2 rounded-full transition-all duration-300 ${
+              <div className="relative flex items-center justify-center space-x-2">
+                <div className={`p-1 rounded-full transition-all duration-300 ${
                   entrySide === 'Short'
                     ? 'bg-red-500/20 text-red-300'
-                    : 'bg-slate-600/50 text-slate-400 group-hover:bg-slate-500/50 group-hover:text-slate-300'
+                    : 'bg-slate-600/50 text-slate-400 group-hover:text-slate-300'
                 }`}>
-                  <TrendingDown className="w-5 h-5" />
+                  <TrendingDown className="w-3 h-3" />
                 </div>
                 
-                <div className="flex flex-col items-start">
-                  <span className={`font-bold text-lg transition-colors duration-300 ${
-                    entrySide === 'Short' ? 'text-white' : 'text-slate-300 group-hover:text-white'
-                  }`}>
-                    Short
-                  </span>
-                  <span className={`text-xs transition-colors duration-300 ${
-                    entrySide === 'Short' ? 'text-red-300' : 'text-slate-500 group-hover:text-slate-400'
-                  }`}>
-                    Sell Position
-                  </span>
-                </div>
+                <span className={`font-medium text-sm transition-colors duration-300 ${
+                  entrySide === 'Short' ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                }`}>
+                  Short
+                </span>
                 
                 {/* Selection indicator */}
                 {entrySide === 'Short' && (
                   <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="absolute top-2 right-2"
                   >
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div>
+                    <CheckCircle className="w-3 h-3 text-red-400" />
                   </motion.div>
                 )}
-              </div>
-              
-              {/* Shimmer effect on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
               </div>
             </motion.button>
           </div>
