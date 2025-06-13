@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calculator, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Calculator, Sparkles, TrendingUp, TrendingDown, CheckCircle } from 'lucide-react';
 import { Trade } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import toast from 'react-hot-toast';
@@ -162,86 +162,156 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedT
           </div>
         </div>
 
-        {/* Glassy Long/Short Toggle Buttons */}
+        {/* Premium Long/Short Toggle Buttons */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-3">
             Entry Side
           </label>
-          <div className="flex space-x-3">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Long Button */}
             <motion.button
               type="button"
-              whileHover={{ scale: 1.02, y: -1 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setEntrySide('Long')}
-              className={`glass-button flex-1 flex items-center justify-center px-6 py-4 rounded-xl font-medium transition-all duration-300 relative overflow-hidden ${
+              className={`relative group overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
                 entrySide === 'Long'
-                  ? 'glass-button-active-long'
-                  : 'glass-button-inactive'
+                  ? 'bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-emerald-600/20 border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/25'
+                  : 'bg-gradient-to-br from-slate-700/50 to-slate-800/50 border-2 border-slate-600/30 hover:border-slate-500/50'
               }`}
             >
-              {/* Glass overlay effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
-              
-              {/* Content */}
-              <div className="relative flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                <span className="font-semibold">Long</span>
-                {entrySide === 'Long' && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="ml-3 w-2 h-2 bg-white rounded-full shadow-lg"
-                  />
-                )}
+              {/* Animated background gradient */}
+              <div className={`absolute inset-0 transition-opacity duration-300 ${
+                entrySide === 'Long' ? 'opacity-100' : 'opacity-0'
+              }`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-green-500/10" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-300/5 to-transparent" />
               </div>
               
-              {/* Active glow effect */}
+              {/* Glow effect */}
               {entrySide === 'Long' && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl blur-sm"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-2xl"
                 />
               )}
-            </motion.button>
-            
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setEntrySide('Short')}
-              className={`glass-button flex-1 flex items-center justify-center px-6 py-4 rounded-xl font-medium transition-all duration-300 relative overflow-hidden ${
-                entrySide === 'Short'
-                  ? 'glass-button-active-short'
-                  : 'glass-button-inactive'
-              }`}
-            >
-              {/* Glass overlay effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
               
               {/* Content */}
-              <div className="relative flex items-center">
-                <TrendingDown className="w-5 h-5 mr-2" />
-                <span className="font-semibold">Short</span>
-                {entrySide === 'Short' && (
+              <div className="relative flex items-center justify-center space-x-3">
+                <div className={`p-2 rounded-full transition-all duration-300 ${
+                  entrySide === 'Long'
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : 'bg-slate-600/50 text-slate-400 group-hover:bg-slate-500/50 group-hover:text-slate-300'
+                }`}>
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                
+                <div className="flex flex-col items-start">
+                  <span className={`font-bold text-lg transition-colors duration-300 ${
+                    entrySide === 'Long' ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                  }`}>
+                    Long
+                  </span>
+                  <span className={`text-xs transition-colors duration-300 ${
+                    entrySide === 'Long' ? 'text-emerald-300' : 'text-slate-500 group-hover:text-slate-400'
+                  }`}>
+                    Buy Position
+                  </span>
+                </div>
+                
+                {/* Selection indicator */}
+                {entrySide === 'Long' && (
                   <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="ml-3 w-2 h-2 bg-white rounded-full shadow-lg"
-                  />
+                    className="absolute top-2 right-2"
+                  >
+                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                  </motion.div>
                 )}
               </div>
               
-              {/* Active glow effect */}
+              {/* Shimmer effect on hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+              </div>
+            </motion.button>
+            
+            {/* Short Button */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setEntrySide('Short')}
+              className={`relative group overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
+                entrySide === 'Short'
+                  ? 'bg-gradient-to-br from-red-500/20 via-rose-500/15 to-red-600/20 border-2 border-red-400/50 shadow-lg shadow-red-500/25'
+                  : 'bg-gradient-to-br from-slate-700/50 to-slate-800/50 border-2 border-slate-600/30 hover:border-slate-500/50'
+              }`}
+            >
+              {/* Animated background gradient */}
+              <div className={`absolute inset-0 transition-opacity duration-300 ${
+                entrySide === 'Short' ? 'opacity-100' : 'opacity-0'
+              }`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-red-400/10 via-transparent to-rose-500/10" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-red-300/5 to-transparent" />
+              </div>
+              
+              {/* Glow effect */}
               {entrySide === 'Short' && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-xl blur-sm"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute inset-0 bg-red-500/10 blur-xl rounded-2xl"
                 />
               )}
+              
+              {/* Content */}
+              <div className="relative flex items-center justify-center space-x-3">
+                <div className={`p-2 rounded-full transition-all duration-300 ${
+                  entrySide === 'Short'
+                    ? 'bg-red-500/20 text-red-300'
+                    : 'bg-slate-600/50 text-slate-400 group-hover:bg-slate-500/50 group-hover:text-slate-300'
+                }`}>
+                  <TrendingDown className="w-5 h-5" />
+                </div>
+                
+                <div className="flex flex-col items-start">
+                  <span className={`font-bold text-lg transition-colors duration-300 ${
+                    entrySide === 'Short' ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                  }`}>
+                    Short
+                  </span>
+                  <span className={`text-xs transition-colors duration-300 ${
+                    entrySide === 'Short' ? 'text-red-300' : 'text-slate-500 group-hover:text-slate-400'
+                  }`}>
+                    Sell Position
+                  </span>
+                </div>
+                
+                {/* Selection indicator */}
+                {entrySide === 'Short' && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="absolute top-2 right-2"
+                  >
+                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+              
+              {/* Shimmer effect on hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+              </div>
             </motion.button>
           </div>
         </div>
