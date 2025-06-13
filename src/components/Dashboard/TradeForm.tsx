@@ -162,7 +162,7 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedT
           </div>
         </div>
 
-        {/* Enhanced Long/Short Toggle Buttons */}
+        {/* Glassy Long/Short Toggle Buttons */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-3">
             Entry Side
@@ -170,44 +170,76 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId, extractedT
           <div className="flex space-x-3">
             <motion.button
               type="button"
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setEntrySide('Long')}
-              className={`flex-1 flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+              className={`glass-button flex-1 flex items-center justify-center px-6 py-4 rounded-xl font-medium transition-all duration-300 relative overflow-hidden ${
                 entrySide === 'Long'
-                  ? 'bg-green-600 text-white shadow-lg shadow-green-600/25 ring-2 ring-green-500/50'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                  ? 'glass-button-active-long'
+                  : 'glass-button-inactive'
               }`}
             >
-              <TrendingUp className="w-5 h-5 mr-2" />
-              Long
+              {/* Glass overlay effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
+              
+              {/* Content */}
+              <div className="relative flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2" />
+                <span className="font-semibold">Long</span>
+                {entrySide === 'Long' && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="ml-3 w-2 h-2 bg-white rounded-full shadow-lg"
+                  />
+                )}
+              </div>
+              
+              {/* Active glow effect */}
               {entrySide === 'Long' && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="ml-2 w-2 h-2 bg-white rounded-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl blur-sm"
                 />
               )}
             </motion.button>
             
             <motion.button
               type="button"
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setEntrySide('Short')}
-              className={`flex-1 flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+              className={`glass-button flex-1 flex items-center justify-center px-6 py-4 rounded-xl font-medium transition-all duration-300 relative overflow-hidden ${
                 entrySide === 'Short'
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-600/25 ring-2 ring-red-500/50'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                  ? 'glass-button-active-short'
+                  : 'glass-button-inactive'
               }`}
             >
-              <TrendingDown className="w-5 h-5 mr-2" />
-              Short
+              {/* Glass overlay effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
+              
+              {/* Content */}
+              <div className="relative flex items-center">
+                <TrendingDown className="w-5 h-5 mr-2" />
+                <span className="font-semibold">Short</span>
+                {entrySide === 'Short' && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="ml-3 w-2 h-2 bg-white rounded-full shadow-lg"
+                  />
+                )}
+              </div>
+              
+              {/* Active glow effect */}
               {entrySide === 'Short' && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="ml-2 w-2 h-2 bg-white rounded-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-xl blur-sm"
                 />
               )}
             </motion.button>
