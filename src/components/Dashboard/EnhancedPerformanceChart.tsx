@@ -31,6 +31,7 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
   initialCapital 
 }) => {
   const [activeChart, setActiveChart] = useState<'capital' | 'distribution' | 'performance' | 'timeline'>('capital');
+  const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
   // Prepare capital growth data
   const capitalData = trades.reduce((acc, trade, index) => {
@@ -51,7 +52,7 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
     return acc;
   }, [] as any[]);
 
-  // Prepare P/L distribution data
+  // Prepare P/L distribution data with new colors
   const profitTrades = trades.filter(trade => trade.profit_loss > 0);
   const lossTrades = trades.filter(trade => trade.profit_loss < 0);
   
@@ -59,8 +60,8 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
   const totalLoss = Math.abs(lossTrades.reduce((sum, trade) => sum + trade.profit_loss, 0));
   
   const pieData = [
-    { name: 'Profits', value: totalProfit, count: profitTrades.length, color: '#10B981' },
-    { name: 'Losses', value: totalLoss, count: lossTrades.length, color: '#EF4444' },
+    { name: 'Profits', value: totalProfit, count: profitTrades.length, color: '#3B82F6' }, // Blue
+    { name: 'Losses', value: totalLoss, count: lossTrades.length, color: '#8B5CF6' },  // Purple
   ].filter(item => item.value > 0);
 
   // Prepare performance by day data
@@ -136,17 +137,65 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
       const data = payload[0].payload;
       return (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl"
+          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="bg-slate-800 border border-slate-600 rounded-lg p-4 shadow-xl backdrop-blur-sm"
+          style={{
+            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95))',
+            borderColor: data.color,
+            boxShadow: `0 10px 25px rgba(0, 0, 0, 0.3), 0 0 20px ${data.color}20`
+          }}
         >
-          <p className="text-slate-300 text-sm font-medium">{data.name}</p>
-          <p className="text-white font-semibold">{formatCurrency(data.value)}</p>
-          <p className="text-slate-400 text-xs">{data.count} trades</p>
+          <div className="flex items-center mb-2">
+            <div 
+              className="w-4 h-4 rounded-full mr-3"
+              style={{ 
+                backgroundColor: data.color,
+                boxShadow: `0 0 10px ${data.color}50`
+              }}
+            />
+            <p className="text-slate-300 text-sm font-medium">{data.name}</p>
+          </div>
+          <p className="text-white font-bold text-lg">{formatCurrency(data.value)}</p>
+          <p className="text-slate-400 text-xs mt-1">{data.count} trades</p>
+          <p className="text-slate-500 text-xs">
+            {((data.value / (totalProfit + totalLoss)) * 100).toFixed(1)}% of total
+          </p>
         </motion.div>
       );
     }
     return null;
+  };
+
+  // Custom pie cell component with hover animations
+  const AnimatedPieCell = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, ...props }: any) => {
+    const isActive = activePieIndex === index;
+    const expandedOuterRadius = isActive ? outerRadius + 8 : outerRadius;
+    
+    return (
+      <motion.g
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ 
+          scale: 1, 
+          opacity: 1,
+        }}
+        transition={{ 
+          delay: index * 0.2,
+          type: "spring",
+          stiffness: 200,
+          damping: 15
+        }}
+      >
+        <Cell 
+          {...props}
+          style={{
+            filter: isActive ? `drop-shadow(0 0 15px ${props.fill}60)` : 'none',
+            transition: 'all 0.3s ease',
+          }}
+        />
+      </motion.g>
+    );
   };
 
   if (trades.length === 0) {
@@ -237,28 +286,66 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
             )}
 
             {activeChart === 'distribution' && (
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={80}
-                  outerRadius={120}
-                  paddingAngle={5}
-                  dataKey="value"
-                  animationBegin={0}
-                  animationDuration={800}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  content={<CustomPieTooltip />}
-                  contentStyle={{ backgroundColor: 'transparent' }}
-                  wrapperStyle={{ backgroundColor: 'transparent' }}
-                />
-              </PieChart>
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 20,
+                  delay: 0.1
+                }}
+                className="w-full h-full"
+              >
+                <PieChart>
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                      <feMerge> 
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={120}
+                    paddingAngle={3}
+                    dataKey="value"
+                    animationBegin={200}
+                    animationDuration={1000}
+                    animationEasing="ease-out"
+                    onMouseEnter={(_, index) => setActivePieIndex(index)}
+                    onMouseLeave={() => setActivePieIndex(null)}
+                    style={{ filter: 'url(#glow)' }}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.color}
+                        stroke={entry.color}
+                        strokeWidth={activePieIndex === index ? 3 : 1}
+                        style={{
+                          filter: activePieIndex === index 
+                            ? `drop-shadow(0 0 15px ${entry.color}60) brightness(1.1)` 
+                            : 'none',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          transformOrigin: 'center',
+                          transform: activePieIndex === index ? 'scale(1.05)' : 'scale(1)',
+                        }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    content={<CustomPieTooltip />}
+                    contentStyle={{ backgroundColor: 'transparent' }}
+                    wrapperStyle={{ backgroundColor: 'transparent' }}
+                  />
+                </PieChart>
+              </motion.div>
             )}
 
             {activeChart === 'performance' && (
@@ -359,15 +446,25 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
           )}
           
           {activeChart === 'distribution' && pieData.map((entry) => (
-            <div key={entry.name} className="flex items-center">
-              <div 
+            <motion.div 
+              key={entry.name} 
+              className="flex items-center"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.div 
                 className="w-3 h-3 rounded-full mr-2"
                 style={{ backgroundColor: entry.color }}
+                whileHover={{ 
+                  boxShadow: `0 0 15px ${entry.color}60`,
+                  scale: 1.2 
+                }}
+                transition={{ type: "spring", stiffness: 400 }}
               />
               <span className="text-slate-300">
                 {entry.name}: {formatCurrency(entry.value)} ({entry.count} trades)
               </span>
-            </div>
+            </motion.div>
           ))}
           
           {activeChart === 'performance' && (
