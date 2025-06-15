@@ -168,36 +168,6 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
     return null;
   };
 
-  // Custom pie cell component with hover animations
-  const AnimatedPieCell = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, ...props }: any) => {
-    const isActive = activePieIndex === index;
-    const expandedOuterRadius = isActive ? outerRadius + 8 : outerRadius;
-    
-    return (
-      <motion.g
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ 
-          scale: 1, 
-          opacity: 1,
-        }}
-        transition={{ 
-          delay: index * 0.2,
-          type: "spring",
-          stiffness: 200,
-          damping: 15
-        }}
-      >
-        <Cell 
-          {...props}
-          style={{
-            filter: isActive ? `drop-shadow(0 0 15px ${props.fill}60)` : 'none',
-            transition: 'all 0.3s ease',
-          }}
-        />
-      </motion.g>
-    );
-  };
-
   if (trades.length === 0) {
     return (
       <div className="bg-slate-800 rounded-xl p-8 border border-slate-700 text-center">
@@ -313,7 +283,7 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
                     cy="50%"
                     innerRadius={80}
                     outerRadius={120}
-                    paddingAngle={3}
+                    paddingAngle={5}
                     dataKey="value"
                     animationBegin={200}
                     animationDuration={1000}
