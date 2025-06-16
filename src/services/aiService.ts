@@ -286,7 +286,13 @@ Rules:
     }
   },
 
+  // Generate a stable greeting that doesn't change randomly
   getGreeting(userName?: string): string {
+    // Create a stable seed based on the current day to ensure greeting stays same for the day
+    const today = new Date();
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+    const seed = dayOfYear + (userName ? userName.length : 0);
+    
     const now = new Date();
     const hour = now.getHours();
     const month = now.getMonth();
@@ -304,7 +310,7 @@ Rules:
         `Wide awake${userName ? ` ${userName}` : ''}? 🌃 Perfect time for some deep market analysis!`,
         `Early bird or night owl${userName ? `, ${userName}` : ''}? 🌅 Either way, I'm here to help with your trading!`
       ];
-      return nightOwlGreetings[Math.floor(Math.random() * nightOwlGreetings.length)];
+      return nightOwlGreetings[seed % nightOwlGreetings.length];
     }
     
     // Regular time-based greetings
@@ -321,7 +327,7 @@ Rules:
         `Hey there${userName ? ` ${userName}` : ''}! 🌃 Late night trading session?`,
         `Evening${userName ? ` ${userName}` : ''}! 🌆 Perfect time to review today's trades!`
       ];
-      return lateNightGreetings[Math.floor(Math.random() * lateNightGreetings.length)];
+      return lateNightGreetings[seed % lateNightGreetings.length];
     }
 
     let holidayGreeting = '';
@@ -347,6 +353,7 @@ Rules:
       `${holidayGreeting}${timeGreeting}${name}! I'm here to help with your trading analysis!`
     ];
     
-    return greetings[Math.floor(Math.random() * greetings.length)];
+    // Use seed to pick a stable greeting for the day
+    return greetings[seed % greetings.length];
   }
 };

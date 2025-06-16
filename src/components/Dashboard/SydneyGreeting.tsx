@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { aiService } from '../../services/aiService';
 
@@ -17,7 +17,10 @@ interface SydneyGreetingProps {
 }
 
 const SydneyGreeting: React.FC<SydneyGreetingProps> = ({ userName }) => {
-  const greeting = aiService.getGreeting(userName);
+  // Use useMemo to ensure greeting is stable and doesn't change on re-renders
+  const greeting = useMemo(() => {
+    return aiService.getGreeting(userName);
+  }, [userName]); // Only recalculate if userName changes
 
   return (
     <motion.div

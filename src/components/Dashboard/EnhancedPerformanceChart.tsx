@@ -255,7 +255,7 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
               </AreaChart>
             )}
 
-            {activeChart === 'distribution' && (
+            {activeChart === 'distribution' && pieData.length > 0 && (
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -265,9 +265,9 @@ const EnhancedPerformanceChart: React.FC<EnhancedPerformanceChartProps> = ({
                   damping: 20,
                   delay: 0.1
                 }}
-                className="w-full h-full"
+                className="w-full h-full flex items-center justify-center"
               >
-                <PieChart>
+                <PieChart width={400} height={320}>
                   <defs>
                     <filter id="glow">
                       <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
